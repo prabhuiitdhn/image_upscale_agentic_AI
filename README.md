@@ -12,6 +12,7 @@ This project combines script-based image processing with an orchestration layer 
 - Unit-aware resize support (`pixels`, `cm`, `inches`)
 - Uncompressed image conversion utility
 - Workflow orchestrator (`workflow_agent.py`) to run tasks in order
+- Beginner-friendly guided runner (`beginner_workflow_agent.py`)
 - GitHub sync automation (`github_sync_agent.py`) with commit and push flow
 
 ## Project Structure
@@ -21,6 +22,7 @@ Image_resolution_using_agents/
   config.json                    # Central config for all paths, params, task order
   config_loader.py               # Shared config/path resolver
   workflow_agent.py              # Orchestrator agent
+  beginner_workflow_agent.py     # Guided runner for non-technical users
   github_sync_agent.py           # GitHub sync tool-wrapper agent
 
   main.py                        # Image details + uncompressed size estimator
@@ -139,6 +141,14 @@ Edit `config.json`:
 ```bash
 python workflow_agent.py --config config.json
 ```
+
+## Run beginner guided workflow
+
+```bash
+python beginner_workflow_agent.py --config config.json
+```
+
+This mode asks simple prompts (preset, input path, output path, optional GitHub sync), writes a temporary runtime config, and then runs the orchestrator automatically.
 
 ## Run individual tools
 
