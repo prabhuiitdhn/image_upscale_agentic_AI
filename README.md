@@ -203,6 +203,19 @@ Optional token for automatic repository creation in sync flow:
 $env:GITHUB_TOKEN="your_token_here"
 ```
 
+## GitHub Actions CI
+
+This project now includes an automated workflow at [.github/workflows/ci.yml](.github/workflows/ci.yml).
+
+It runs on push and pull request to main, and performs:
+
+1. Python 3.10 setup
+2. Dependency install from [requirements.txt](requirements.txt)
+3. Python compile check across the repo
+4. Import smoke test for core project modules
+
+This gives a quick quality gate before or after merge.
+
 ## Troubleshooting (Step by Step)
 
 ### Issue: Push rejected due to file size
