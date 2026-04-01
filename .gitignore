@@ -1,0 +1,12 @@
+# Large local assets not suitable for regular GitHub push
+images/original/ABS1_4x.png
+
+# Generated outputs
+upscaled_merged_pil.png
+upscaled_merged_numpy.png
+temp_tile_input.png
+temp_tile_output.png
+
+# Python cache
+__pycache__/
+*.pyc

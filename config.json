@@ -1,0 +1,43 @@
+{
+  "paths": {
+    "input_image": "images/original/ABS1.png",
+    "upscaled_input_image": "images/original/ABS1_4x.png",
+    "upscaled_output_image": "upscaled_merged_pil.png",
+    "resize_output_dir": "images/original",
+    "uncompressed_output": "images/ABS1_uncompressed.bmp",
+    "realesrgan_exe": "exe/realesrgan-ncnn-vulkan-20220424-windows/realesrgan-ncnn-vulkan.exe"
+  },
+  "image_details": {
+    "print_width_in": 140,
+    "print_height_in": 210
+  },
+  "resize": {
+    "unit": "cm",
+    "height": 100,
+    "width": 150,
+    "dpi": 300,
+    "output_name": "ABS1_4x_resized.png"
+  },
+  "quality_check": {
+    "show_edges": true
+  },
+  "upscale": {
+    "tile_size": 512,
+    "overlap": 32,
+    "merge_method": "pil",
+    "model_name": "realesrgan-x4plus",
+    "scale": 4
+  },
+  "agent": {
+    "tasks": [
+      "upscale",
+      "resize",
+      "quality_check",
+      "github_sync"
+    ]
+  },
+  "git": {
+    "default_repo_link": "",
+    "visibility": "private"
+  }
+}
