@@ -1,108 +1,112 @@
 # Image Resolution Using Agentic Workflow
 
-A configurable image-processing pipeline for upscaling, resizing, quality checks, and GitHub synchronization.
+This project helps you upscale, resize, evaluate, and publish image-processing outputs using a central configuration and guided agent workflows.
 
-This project combines script-based image processing with an orchestration layer that behaves like an agent: it reads a central config, executes tasks in sequence, and can sync code to GitHub on each run.
+The goal is simple: one setup, then repeatable runs for technical and non-technical users.
 
-## Key Features
+## What This Project Does
 
-- Centralized configuration in one file: `config.json`
-- Tile-based large-image upscaling with Real-ESRGAN executable
-- Optional quality checks (dimension comparison and edge visualization)
-- Unit-aware resize support (`pixels`, `cm`, `inches`)
-- Uncompressed image conversion utility
-- Workflow orchestrator (`workflow_agent.py`) to run tasks in order
-- Beginner-friendly guided runner (`beginner_workflow_agent.py`)
-- GitHub sync automation (`github_sync_agent.py`) with commit and push flow
+- Upscales large images using tiled Real-ESRGAN processing.
+- Resizes images in pixels, cm, or inches.
+- Compares original vs upscaled quality.
+- Exports uncompressed image versions.
+- Runs full workflows from a single config file.
+- Commits and pushes code changes to GitHub with guided prompts.
 
-## Project Structure
+## Who This Is For
+
+- Non-technical users who want guided prompts.
+- Technical users who want script-level control.
+- Teams who want repeatable and shareable image workflows.
+
+## Project Layout
 
 ```text
 Image_resolution_using_agents/
-  config.json                    # Central config for all paths, params, task order
-  config_loader.py               # Shared config/path resolver
-  workflow_agent.py              # Orchestrator agent
-  beginner_workflow_agent.py     # Guided runner for non-technical users
-  github_sync_agent.py           # GitHub sync tool-wrapper agent
+  config.json                          # Main central configuration
+  config_loader.py                     # Shared config/path resolver
 
-  main.py                        # Image details + uncompressed size estimator
-  image_resize.py                # Resize logic (pixels/cm/inches)
-  image_quality_check.py         # Dimensional + edge comparison
-  partition_and_upscale.py       # Tile split/upscale/merge pipeline
-  uncompressed_image.py          # Convert image to uncompressed format
+  workflow_agent.py                    # Main orchestrator agent (task list executor)
+  beginner_workflow_agent.py           # Guided non-technical runner
+  github_sync_agent.py                 # Git commit/push assistant
 
-  images/
-    original/
+  partition_and_upscale.py             # Tile split -> upscale -> merge pipeline
+  image_resize.py                      # Resize utility
+  image_quality_check.py               # Dimension and edge comparison
+  uncompressed_image.py                # Export uncompressed image
+  main.py                              # Image details and DPI helper
 
-  exe/
-    realesrgan-ncnn-vulkan-20220424-windows/
-      realesrgan-ncnn-vulkan.exe
-      models/
+  .github/agents/                      # Custom Copilot agent definitions
+
+  images/original/                     # Input images
+  exe/realesrgan-ncnn-vulkan-.../      # Real-ESRGAN executable and models
 ```
 
-## Workflow Structure
+## Quick Start (Step by Step)
 
-The runtime behavior is controlled by `agent.tasks` in `config.json`.
+### 1. Install prerequisites
 
-Current default task order:
+Install these first:
 
-1. `upscale`
-2. `resize`
-3. `quality_check`
-4. `github_sync`
+- Python 3.9 or newer
+- Git
+- Real-ESRGAN executable folder (already included in this repo)
 
-### Execution Graph
+### 2. Open project folder in terminal
 
-```mermaid
-flowchart TD
-    A[Load config.json] --> B[Read agent.tasks]
-    B --> C[upscale]
-    C --> D[resize]
-    D --> E[quality_check]
-    E --> F[github_sync]
-    F --> G[Done]
+Run commands from project root.
 
-    C --> C1[partition_and_upscale.py]
-    D --> D1[image_resize.py]
-    E --> E1[image_quality_check.py]
-    F --> F1[github_sync_agent.py]
+Windows PowerShell example:
+
+```powershell
+cd D:\innovation\Image_resolution_using_agents
 ```
 
-## How the Agentic Layer Works
+### 3. Install Python packages
 
-### Orchestrator Agent
+```powershell
+pip install pillow numpy matplotlib opencv-python
+```
 
-`workflow_agent.py` acts as the orchestrator:
+### 4. Update central config
 
-- Loads the central config
-- Resolves relative paths safely
-- Dispatches each task by name
-- Passes per-task settings from config
+Edit config.json and set paths for your files.
 
-### Tool Agents
+Minimum values to check:
 
-- `github_sync_agent.py`: asks for repository link + commit message, commits and pushes.
-- Processing scripts (`partition_and_upscale.py`, `image_resize.py`, etc.) are callable tools used by the orchestrator.
+- paths.input_image
+- paths.upscaled_input_image
+- paths.upscaled_output_image
+- paths.realesrgan_exe
 
-This creates a simple agentic pattern:
+### 5. Run beginner mode (easiest)
 
-- plan (task list in config)
-- execute (run task handlers)
-- report (console output and git state)
+```powershell
+python beginner_workflow_agent.py --config config.json
+```
 
-## Central Configuration (`config.json`)
+You will be asked simple questions:
 
-Main sections:
+- preset (fast, balanced, quality)
+- input image path
+- output image path
+- optional GitHub sync
 
-- `paths`: all input/output/executable paths
-- `image_details`: print DPI context
-- `resize`: width, height, unit, output name
-- `quality_check`: optional edge view toggle
-- `upscale`: tile size, overlap, merge method, model, scale
-- `agent`: task sequence
-- `git`: default repository link and visibility
+### 6. Check outputs
 
-Example task sequence:
+- Upscaled output: from paths.upscaled_output_image
+- Resized output: from resize.output_name in paths.resize_output_dir
+- Uncompressed output: from paths.uncompressed_output (if task enabled)
+
+## Full Workflow Mode
+
+If you want deterministic runs from config only:
+
+```powershell
+python workflow_agent.py --config config.json
+```
+
+The run order comes from:
 
 ```json
 "agent": {
@@ -110,49 +114,11 @@ Example task sequence:
 }
 ```
 
-## Setup
+## Individual Commands
 
-## 1) Prerequisites
+Use these when you only want one operation:
 
-- Python 3.9+
-- Git
-- Real-ESRGAN Windows executable already present in:
-  - `exe/realesrgan-ncnn-vulkan-20220424-windows/`
-
-## 2) Install Python dependencies
-
-```bash
-pip install pillow numpy matplotlib opencv-python
-```
-
-## 3) Configure values
-
-Edit `config.json`:
-
-- Update image paths under `paths`
-- Set desired model and upscale options under `upscale`
-- Set task order under `agent.tasks`
-- Optionally set `git.default_repo_link`
-
-## Usage
-
-## Run full workflow (recommended)
-
-```bash
-python workflow_agent.py --config config.json
-```
-
-## Run beginner guided workflow
-
-```bash
-python beginner_workflow_agent.py --config config.json
-```
-
-This mode asks simple prompts (preset, input path, output path, optional GitHub sync), writes a temporary runtime config, and then runs the orchestrator automatically.
-
-## Run individual tools
-
-```bash
+```powershell
 python partition_and_upscale.py --config config.json
 python image_resize.py --config config.json
 python image_quality_check.py --config config.json
@@ -161,51 +127,146 @@ python main.py --config config.json
 python github_sync_agent.py
 ```
 
-## GitHub Sync Behavior
+## Configuration Guide
 
-`github_sync_agent.py` performs:
+### paths
 
-1. Prompt for repository link (uses default if configured)
-2. Prompt for visibility (`private`/`public`)
-3. Prompt for commit message
-4. Stage and commit changed files
-5. Ensure remote `origin` is set
-6. Push to remote branch
+- input_image: Source image for details/uncompressed conversion.
+- upscaled_input_image: Input for tile upscaling.
+- upscaled_output_image: Final merged upscaled output.
+- resize_output_dir: Folder for resized images.
+- uncompressed_output: Output path for uncompressed export.
+- realesrgan_exe: Path to realesrgan-ncnn-vulkan.exe.
 
-If tracked files exceed GitHub size limits, sync is blocked with a clear error.
+### upscale
 
-## Large File Guidance
+- tile_size: Tile dimension. Larger can be faster but heavier memory usage.
+- overlap: Blending overlap between tiles.
+- merge_method: pil or numpy (pil is usually safer on RAM).
+- model_name: Real-ESRGAN model name.
+- scale: Upscale factor.
 
-GitHub rejects single files larger than 100 MB in standard Git.
+### resize
 
-Recommended:
+- unit: pixels, cm, or inches.
+- width and height: target dimensions.
+- dpi: used for cm/inches conversion.
+- output_name: output filename.
 
-- Keep large generated artifacts out of Git via `.gitignore`
-- Use Git LFS for assets that must be versioned
+### quality_check
 
-## Troubleshooting
+- show_edges: true to visualize edge maps.
 
-## Push fails with size error
+### git
 
-- Remove large file from tracking:
-  - `git rm --cached <path>`
-- Add path to `.gitignore`
-- Amend or create a new commit
-- Push again (force push may be needed if history was rewritten)
+- default_repo_link: optional default remote URL.
+- visibility: private or public.
 
-## No changes to commit
+## Custom Agents Available
 
-- This means working tree is clean; push may still run but no new commit is created.
+Custom agent files are under .github/agents.
 
-## Path issues on Windows
+- github-sync.agent.md
+- beginner-workflow.agent.md
+- image-quality-check.agent.md
+- print-ready.agent.md
+- large-image-upscale.agent.md
+- uncompressed-export.agent.md
 
-- Keep relative paths in `config.json`
-- Run commands from project root
+These agents are designed to make operations easier for non-technical users with guided behavior.
 
-## Suggested Next Improvements
+## GitHub Sync (Safe Workflow)
 
-1. Add structured run logs (`logs/<run_id>.json`)
-2. Add retries and failure policy per task
-3. Add objective quality metrics (PSNR/SSIM)
-4. Add a dry-run mode for workflow validation
-5. Add CI pipeline for lint/test/push checks
+When github_sync_agent.py runs, it:
+
+1. Asks for repository link.
+2. Asks private/public visibility.
+3. Asks commit message.
+4. Adds and commits changes.
+5. Validates/sets origin.
+6. Pushes branch.
+
+If a tracked file is above GitHub size limit (100 MB), push is blocked with a clear message.
+
+## Recommended First-Time Git Setup
+
+If not configured on your machine:
+
+```powershell
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+Optional token for automatic repository creation in sync flow:
+
+```powershell
+$env:GITHUB_TOKEN="your_token_here"
+```
+
+## Troubleshooting (Step by Step)
+
+### Issue: Push rejected due to file size
+
+Reason: GitHub blocks files larger than 100 MB in normal git push.
+
+Fix:
+
+1. Remove file from tracking:
+   git rm --cached <large_file_path>
+2. Add that path to .gitignore
+3. Commit again (or amend)
+4. Push again
+
+### Issue: "No changes to commit"
+
+Reason: Working tree is already clean.
+
+Fix:
+
+1. Edit files you want to update.
+2. Run sync again.
+
+### Issue: Path not found
+
+Fix:
+
+1. Ensure you run commands from project root.
+2. Use relative paths in config.json.
+3. Verify exe and image paths exist.
+
+### Issue: Upscaling fails mid-run
+
+Fix:
+
+1. Reduce upscale.tile_size in config.json.
+2. Keep overlap moderate (16 to 48).
+3. Retry with fast preset using beginner runner.
+
+## Best Practices
+
+- Keep generated outputs out of git unless needed.
+- Prefer relative paths in config.json.
+- Start with balanced preset, then tune quality.
+- Use smaller tile_size on low-memory systems.
+- Keep commit messages specific and short.
+
+## Typical User Flows
+
+### Flow A: Non-technical user
+
+1. Run beginner_workflow_agent.py
+2. Select preset and provide paths
+3. Let workflow run automatically
+4. Optionally sync to GitHub
+
+### Flow B: Technical user
+
+1. Edit config.json directly
+2. Run workflow_agent.py
+3. Run quality check
+4. Sync code using github_sync_agent.py
+
+## Notes
+
+- This repository is currently optimized for Windows paths and PowerShell examples.
+- Real-ESRGAN processing quality and speed depend on image type, model, and hardware.
